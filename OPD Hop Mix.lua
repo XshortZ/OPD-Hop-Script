@@ -12,12 +12,7 @@ local Camera = workspace.CurrentCamera
 -- ==========================================
 --  CONFIG URLs (แก้ตรงนี้)
 -- ==========================================
-local WEBHOOK_FRUIT   = "https://discord.com/api/webhooks/1513842359157391451/F1V8unHxGk1lRBD7krXhmN3drD26CannEPwiWIil1awktvcp2HxSU1uFubHr-SLJYhDD"
-local WEBHOOK_WB      = "https://discord.com/api/webhooks/1520242922308501554/o2inaXwuLWX63QtKJtA1GJ482evi_RA3AfQIyBsCzFC2jq27mAc_ArzhpK1AAtant0o5"
-local WEBHOOK_SD      = "https://discord.com/api/webhooks/1520260370286121010/10iGETRKZL9PQYUJhFaTr2_ZAc_Dq3pg9vwq_-FTwYarTlhb56MYhmo5DUSu3P6N3Vax"
-local NTFY_FRUIT      = "fruitfinderXXX123"
-local NTFY_WB         = "WhiteBeardHuntXX987"
-local NTFY_SD         = "ScreatDealerXXX123"
+
 local CHECK_INTERVAL  = 2
 local PLACE_ID        = game.PlaceId
 
