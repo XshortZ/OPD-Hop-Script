@@ -13,6 +13,14 @@ local Camera = workspace.CurrentCamera
 --  CONFIG URLs (แก้ตรงนี้)
 -- ==========================================
 
+local WEBHOOK_FRUIT = _G.WEBHOOK_FRUIT or ""
+local WEBHOOK_WB    = _G.WEBHOOK_WB or ""
+local WEBHOOK_SD    = _G.WEBHOOK_SD or ""
+
+local NTFY_FRUIT = _G.NTFY_FRUIT or ""
+local NTFY_WB    = _G.NTFY_WB or ""
+local NTFY_SD    = _G.NTFY_SD or ""
+
 local CHECK_INTERVAL  = 2
 local PLACE_ID        = game.PlaceId
 
