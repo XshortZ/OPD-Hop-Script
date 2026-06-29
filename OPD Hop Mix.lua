@@ -127,11 +127,13 @@ end
 
 local statusLabel -- ประกาศไว้ก่อน ใช้ใน hopServer
 local function hopServer(label)
+    if paused then return end
     warn("[Finder] ไม่พบเป้าหมาย → Hopping...")
     if statusLabel then statusLabel.Text = "🔄 กำลัง Hop..." end
     pcall(function()
+        if paused then return end
         TPReturner()
-        if foundAnything ~= "" then TPReturner() end
+        if foundAnything ~= "" and not paused then TPReturner() end
     end)
 end
 
@@ -678,6 +680,7 @@ end
 --  START MODE
 -- ==========================================
 local loopRunning = false
+local paused = false
 
 local function startMode(mode)
     if loopRunning then return end
@@ -685,6 +688,7 @@ local function startMode(mode)
     config.mode = mode
     saveConfig()
     loopRunning = true
+    paused = false
 
     -- ตั้ง UI ตาม mode
     if mode == "fruit" then
@@ -849,13 +853,14 @@ btnSD.MouseButton1Click:Connect(function()    startMode("secretdealer") end)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.M then
-        loopRunning = false
-        mainFrame.Visible = false
-        selFrame.Visible = true
-        selectGui.Enabled = true
-        resetMainUI()
-        warn("[Finder] กด M → เปิดหน้าเลือก Mode")
-    end
+    loopRunning = false
+    paused = true
+    mainFrame.Visible = false
+    selFrame.Visible = true
+    selectGui.Enabled = true
+    resetMainUI()
+    warn("[Finder] กด M → เปิดหน้าเลือก Mode")
+end
 end)
 
 -- ==========================================
