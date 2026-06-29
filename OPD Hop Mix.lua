@@ -115,9 +115,12 @@ local function TPReturner()
             if Possible then
                 table.insert(AllIDs, ID)
                 pcall(function()
-                    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
-                    TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
-                end)
+    if paused then return end
+    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
+    if not paused then
+        TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
+    end
+end)
                 task.wait(4)
                 return
             end
@@ -126,15 +129,25 @@ local function TPReturner()
 end
 
 local statusLabel -- ประกาศไว้ก่อน ใช้ใน hopServer
+local loopRunning = false
+local paused = false
+
 local function hopServer(label)
     if paused then return end
     warn("[Finder] ไม่พบเป้าหมาย → Hopping...")
     if statusLabel then statusLabel.Text = "🔄 กำลัง Hop..." end
+    if paused then return end
     pcall(function()
         if paused then return end
         TPReturner()
-        if foundAnything ~= "" and not paused then TPReturner() end
     end)
+    if paused then return end
+    if foundAnything ~= "" then
+        pcall(function()
+            if paused then return end
+            TPReturner()
+        end)
+    end
 end
 
 -- ==========================================
@@ -599,16 +612,14 @@ end
 
 local function tryPickupFruit()
     if not config.autoPickup then return end
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Tool") and isTargetFruit(obj.Name) and not obj:IsDescendantOf(Players) then
-            local objRoot = obj:FindFirstChildWhichIsA("BasePart")
-            if objRoot then
-                hrp.CFrame = CFrame.new(objRoot.Position + Vector3.new(0, 3, 0))
-                task.wait(0.3)
-                warn("[Finder] 🧲 ดึงผล: " .. obj.Name)
-                return
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Tool") and isTargetFruit(obj.Name) then
+            for _, part in pairs(obj:GetDescendants()) do
+                if part:IsA("ClickDetector") then
+                    fireclickdetector(part)
+                    warn("[Finder] 🧲 คลิกผล: " .. obj.Name)
+                    task.wait(0.2)
+                end
             end
         end
     end
@@ -679,8 +690,6 @@ end
 -- ==========================================
 --  START MODE
 -- ==========================================
-local loopRunning = false
-local paused = false
 
 local function startMode(mode)
     if loopRunning then return end
@@ -747,21 +756,38 @@ local function startMode(mode)
                     tryPickupFruit()
                     task.wait(CHECK_INTERVAL)
                 else
-                    if foundTarget then
-                        statusLabel.Text = "❌ Fruit หายไป → Hopping..."
-                        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-                        foundTarget = false
-                        targetObj = nil
-                        cameraLocked = false
-                        Camera.CameraType = Enum.CameraType.Custom
-                        camBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-                        camBtn.Text = "📷 Camera Lock: OFF"
-                        foundListLabel.Text = "พบ Fruit: -"
-                        countLabel.Text = "รวม: 0"
-                    end
-                    hopServer()
-                    task.wait(CHECK_INTERVAL)
-                end
+    -- เช็คผลใน Workspace ก่อน hop
+    local fruitInWorld = false
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Tool") and isTargetFruit(obj.Name) then
+            fruitInWorld = true
+            break
+        end
+    end
+
+    if fruitInWorld then
+        -- ผลยังอยู่ใน Workspace ไม่ hop
+        statusLabel.Text = "🧲 ผลอยู่ใน Workspace กำลังดึง..."
+        statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+        tryPickupFruit()
+        task.wait(CHECK_INTERVAL)
+    else
+        if foundTarget then
+            statusLabel.Text = "❌ Fruit หายไป → Hopping..."
+            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            foundTarget = false
+            targetObj = nil
+            cameraLocked = false
+            Camera.CameraType = Enum.CameraType.Custom
+            camBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            camBtn.Text = "📷 Camera Lock: OFF"
+            foundListLabel.Text = "พบ Fruit: -"
+            countLabel.Text = "รวม: 0"
+        end
+        hopServer()
+        task.wait(CHECK_INTERVAL)
+    end
+end
 
             elseif mode == "whitebeard" then
                 local allTargets = scanWhitebeard()
