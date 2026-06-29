@@ -667,7 +667,7 @@ local function scanWhitebeard()
     local function checkModel(model)
         if model == LocalPlayer.Character then return end
         if not model:IsA("Model") then return end
-        if string.lower(model.Name):find("whitebeard") then
+        if string.lower(model.Name):find("Lv20000 Whitebeard") then
             local hrp = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
             table.insert(results, {name = model.Name, root = hrp})
         end
