@@ -57,7 +57,7 @@ while #Players:GetPlayers() < 1 do Players.PlayerAdded:Wait() end
 local CONFIG_FILE = "FinderConfig.json"
 local config = {
     mode = nil,           -- "fruit" / "whitebeard" / "secretdealer"
-    autoPickup = false,
+    autoPickup = true,
     cameraLock = false,
 }
 
