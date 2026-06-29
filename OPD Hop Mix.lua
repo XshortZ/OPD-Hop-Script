@@ -427,19 +427,6 @@ camBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Hotkey กด M เปิดหน้าเลือก Mode
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.KeyCode == Enum.KeyCode.M then
-        loopRunning = false
-        mainFrame.Visible = false
-        selFrame.Visible = true
-        selectGui.Enabled = true
-        resetMainUI()
-        warn("[Finder] กด M → เปิดหน้าเลือก Mode")
-    end
-end)
-
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe or not cameraLocked then return end
     if input.KeyCode == Enum.KeyCode.I then
@@ -857,6 +844,19 @@ end)
 btnFruit.MouseButton1Click:Connect(function() startMode("fruit") end)
 btnWB.MouseButton1Click:Connect(function()    startMode("whitebeard") end)
 btnSD.MouseButton1Click:Connect(function()    startMode("secretdealer") end)
+
+-- Hotkey กด M เปิดหน้าเลือก Mode
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.M then
+        loopRunning = false
+        mainFrame.Visible = false
+        selFrame.Visible = true
+        selectGui.Enabled = true
+        resetMainUI()
+        warn("[Finder] กด M → เปิดหน้าเลือก Mode")
+    end
+end)
 
 -- ==========================================
 --  AUTO START จาก config
