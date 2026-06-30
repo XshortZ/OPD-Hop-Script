@@ -129,19 +129,43 @@ local paused = false
 local running = false
 
 local function TPReturner()
-    local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
-    if foundAnything ~= "" then url = url .. '&cursor=' .. foundAnything end
-    local Site = HttpService:JSONDecode(game:HttpGet(url))
-    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
-        foundAnything = Site.nextPageCursor
-    end
+    local serverList = {}
 
-    local serverList = Site.data
-    if config.sortMode == "most" then
-        table.sort(serverList, function(a, b) return tonumber(a.playing) > tonumber(b.playing) end)
-    elseif config.sortMode == "least" then
-        table.sort(serverList, function(a, b) return tonumber(a.playing) < tonumber(b.playing) end)
-    elseif config.sortMode == "random" then
+    if config.sortMode == "most" or config.sortMode == "least" then
+        -- ดึงมาหลายหน้าเพื่อหาเซิฟที่คนเยอะ/น้อยจริงๆ ทั้งเกม ไม่ใช่แค่หน้าเดียว
+        local cursor = ""
+        local PAGES_TO_FETCH = 5 -- ดึง 5 หน้า = ~500 เซิฟ ปรับเพิ่ม/ลดได้ตามต้องการ
+        for page = 1, PAGES_TO_FETCH do
+            local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
+            if cursor ~= "" then url = url .. '&cursor=' .. cursor end
+            local ok, Site = pcall(function()
+                return HttpService:JSONDecode(game:HttpGet(url))
+            end)
+            if not ok or not Site or not Site.data then break end
+            for _, v in pairs(Site.data) do
+                table.insert(serverList, v)
+            end
+            if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+                cursor = Site.nextPageCursor
+            else
+                break -- หมดหน้าแล้ว
+            end
+        end
+
+        if config.sortMode == "most" then
+            table.sort(serverList, function(a, b) return tonumber(a.playing) > tonumber(b.playing) end)
+        else
+            table.sort(serverList, function(a, b) return tonumber(a.playing) < tonumber(b.playing) end)
+        end
+    else
+        -- random: ดึงแค่หน้าเดียวพอ (เร็วกว่า ไม่ต้อง sort ข้ามหน้า)
+        local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
+        if foundAnything ~= "" then url = url .. '&cursor=' .. foundAnything end
+        local Site = HttpService:JSONDecode(game:HttpGet(url))
+        if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+            foundAnything = Site.nextPageCursor
+        end
+        serverList = Site.data
         for i = #serverList, 2, -1 do
             local j = math.random(1, i)
             serverList[i], serverList[j] = serverList[j], serverList[i]
@@ -149,6 +173,39 @@ local function TPReturner()
     end
 
     for _, v in pairs(serverList) do
+        local ID = tostring(v.id)
+        local Possible = true
+        local num = 0
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            for _, Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then Possible = false end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                        pcall(function()
+                            delfile("NotSameServers.json")
+                            AllIDs = {}
+                            table.insert(AllIDs, actualHour)
+                        end)
+                    end
+                end
+                num = num + 1
+            end
+            if Possible then
+                table.insert(AllIDs, ID)
+                if paused then return end
+                pcall(function()
+                    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
+                    if not paused then
+                        TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
+                    end
+                end)
+                task.wait(4)
+                return
+            end
+        end
+    end
+end
         local ID = tostring(v.id)
         local Possible = true
         local num = 0
