@@ -235,7 +235,7 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 250, 0, 280)
+selFrame.Size = UDim2.new(0, 250, 0, 290)
 selFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
 selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
@@ -338,7 +338,7 @@ makeCheckbox("🃏  Secret Dealer Finder", THEME.Purple,  176, "secretdealer")
 
 local confirmBtn = Instance.new("TextButton")
 confirmBtn.Size = UDim2.new(1, -30, 0, 46)
-confirmBtn.Position = UDim2.new(0, 15, 0, 238)
+confirmBtn.Position = UDim2.new(0, 15, 0, 230)
 confirmBtn.BackgroundColor3 = THEME.Cyan
 confirmBtn.BorderSizePixel = 0
 confirmBtn.Text = "▶  CONFIRM & START"
@@ -1070,7 +1070,12 @@ end
 confirmBtn.MouseButton1Click:Connect(function()
     running = false
     task.wait(0.1)
-    startSelectedModes()
+    local ok, err = pcall(startSelectedModes)
+    if not ok then
+        warn("[Finder] ❌ startSelectedModes ERROR: " .. tostring(err))
+        selHint.Text = "❌ Error: " .. tostring(err)
+        selHint.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
 end)
 
 -- Manual Hop: ผู้ใช้กดเองเมื่อรู้สึกว่าเซิฟไม่ดี (lag/โดนเป้าหมายแย่งไปแล้ว ฯลฯ)
