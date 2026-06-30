@@ -235,8 +235,8 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 290, 0, 330)
-selFrame.Position = UDim2.new(0.5, -145, 0.5, -165)
+selFrame.Size = UDim2.new(0, 250, 0, 280)
+selFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
 selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
 selFrame.Parent = selectGui
@@ -370,8 +370,8 @@ mainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 mainGui.Parent = LocalPlayer.PlayerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 270, 0, 568)
-mainFrame.Position = UDim2.new(0, 20, 0.5, -284)
+mainFrame.Size = UDim2.new(0, 220, 0, 420)
+mainFrame.Position = UDim2.new(0, 20, 0.5, -210)
 mainFrame.BackgroundColor3 = THEME.Bg
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -435,7 +435,7 @@ statusLabel.Parent = mainFrame
 
 -- คอนเทนเนอร์สำหรับแต่ละ mode panel (สร้างไดนามิก)
 local panelsFrame = Instance.new("Frame")
-panelsFrame.Size = UDim2.new(1, -20, 0, 415)
+panelsFrame.Size = UDim2.new(1, -20, 0, 270)
 panelsFrame.Position = UDim2.new(0, 10, 0, 70)
 panelsFrame.BackgroundTransparency = 1
 panelsFrame.Parent = mainFrame
@@ -443,7 +443,7 @@ panelsFrame.Parent = mainFrame
 -- Manual Hop button: บังคับย้ายเซิร์ฟทันที (เซิฟไม่ดีแต่เจอเป้าหมาย ก็ hop ได้)
 local hopBtn = Instance.new("TextButton")
 hopBtn.Size = UDim2.new(1, -20, 0, 32)
-hopBtn.Position = UDim2.new(0, 10, 0, 490)
+hopBtn.Position = UDim2.new(0, 10, 0, 345)
 hopBtn.BackgroundColor3 = THEME.Panel
 hopBtn.BorderSizePixel = 0
 hopBtn.Text = "⤴  HOP SERVER (Manual)"
@@ -456,7 +456,7 @@ applyStroke(hopBtn, THEME.Magenta, 1.4, 0.2)
 
 local switchBtn = Instance.new("TextButton")
 switchBtn.Size = UDim2.new(1, -20, 0, 28)
-switchBtn.Position = UDim2.new(0, 10, 0, 528)
+switchBtn.Position = UDim2.new(0, 10, 0, 382)
 switchBtn.BackgroundColor3 = THEME.Panel
 switchBtn.BorderSizePixel = 0
 switchBtn.Text = "⚙ เปลี่ยน Mode (M)"
@@ -659,7 +659,7 @@ local CAM_DISTANCE = 40
 -- สร้าง panel UI สำหรับ mode หนึ่งๆ
 local function createPanel(key, title, color, hasCam, hasPickup)
     local panel = Instance.new("Frame")
-    panel.Size = UDim2.new(1, 0, 0, hasPickup and 175 or (hasCam and 150 or 90))
+    panel.Size = UDim2.new(1, 0, 0, hasPickup and 140 or (hasCam and 115 or 70))
     panel.BackgroundColor3 = THEME.Panel
     panel.BorderSizePixel = 0
     panel.Parent = panelsFrame
