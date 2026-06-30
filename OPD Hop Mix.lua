@@ -442,7 +442,7 @@ panelsFrame.BorderSizePixel = 0
 panelsFrame.ScrollBarThickness = 4
 panelsFrame.ScrollBarImageColor3 = THEME.Cyan
 panelsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-panelsFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+panelsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 panelsFrame.Parent = mainFrame
 
 -- Manual Hop button: บังคับย้ายเซิร์ฟทันที (เซิฟไม่ดีแต่เจอเป้าหมาย ก็ hop ได้)
