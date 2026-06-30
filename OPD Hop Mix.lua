@@ -92,7 +92,6 @@ local CONFIG_FILE = "FinderConfigMulti.json"
 local config = {
     modes = {},          -- { fruit = true/false, whitebeard = true/false, secretdealer = true/false }
     autoPickupFruit = false,
-    sortMode = "random", -- "most" | "least" | "random"
 }
 
 local function saveConfig()
@@ -129,50 +128,13 @@ local paused = false
 local running = false
 
 local function TPReturner()
-    local serverList = {}
-
-    if config.sortMode == "most" or config.sortMode == "least" then
-        -- ดึงมาหลายหน้าเพื่อหาเซิฟที่คนเยอะ/น้อยจริงๆ ทั้งเกม ไม่ใช่แค่หน้าเดียว
-        local cursor = ""
-        local PAGES_TO_FETCH = 5 -- ดึง 5 หน้า = ~500 เซิฟ ปรับเพิ่ม/ลดได้ตามต้องการ
-        for page = 1, PAGES_TO_FETCH do
-            local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
-            if cursor ~= "" then url = url .. '&cursor=' .. cursor end
-            local ok, Site = pcall(function()
-                return HttpService:JSONDecode(game:HttpGet(url))
-            end)
-            if not ok or not Site or not Site.data then break end
-            for _, v in pairs(Site.data) do
-                table.insert(serverList, v)
-            end
-            if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
-                cursor = Site.nextPageCursor
-            else
-                break -- หมดหน้าแล้ว
-            end
-        end
-
-        if config.sortMode == "most" then
-            table.sort(serverList, function(a, b) return tonumber(a.playing) > tonumber(b.playing) end)
-        else
-            table.sort(serverList, function(a, b) return tonumber(a.playing) < tonumber(b.playing) end)
-        end
-    else
-        -- random: ดึงแค่หน้าเดียวพอ (เร็วกว่า ไม่ต้อง sort ข้ามหน้า)
-        local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
-        if foundAnything ~= "" then url = url .. '&cursor=' .. foundAnything end
-        local Site = HttpService:JSONDecode(game:HttpGet(url))
-        if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
-            foundAnything = Site.nextPageCursor
-        end
-        serverList = Site.data
-        for i = #serverList, 2, -1 do
-            local j = math.random(1, i)
-            serverList[i], serverList[j] = serverList[j], serverList[i]
-        end
+    local url = 'https://games.roblox.com/v1/games/' .. PLACE_ID .. '/servers/Public?sortOrder=Asc&limit=100'
+    if foundAnything ~= "" then url = url .. '&cursor=' .. foundAnything end
+    local Site = HttpService:JSONDecode(game:HttpGet(url))
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+        foundAnything = Site.nextPageCursor
     end
-
-    for _, v in pairs(serverList) do
+    for _, v in pairs(Site.data) do
         local ID = tostring(v.id)
         local Possible = true
         local num = 0
@@ -200,7 +162,12 @@ local function TPReturner()
                         TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
                     end
                 end)
-                
+                task.wait(4)
+                return
+            end
+        end
+    end
+end
 
 local statusLabel
 local function hopServer()
@@ -268,8 +235,8 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 250, 0, 360)
-selFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
+selFrame.Size = UDim2.new(0, 250, 0, 290)
+selFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
 selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
 selFrame.Parent = selectGui
@@ -369,70 +336,9 @@ makeCheckbox("🍎  Fruit Finder",         THEME.Yellow,  64, "fruit")
 makeCheckbox("⚓  Whitebeard Finder",    THEME.Cyan,    120, "whitebeard")
 makeCheckbox("🃏  Secret Dealer Finder", THEME.Purple,  176, "secretdealer")
 
-local sortLabel = Instance.new("TextLabel")
-sortLabel.Size = UDim2.new(1, -20, 0, 16)
-sortLabel.Position = UDim2.new(0, 15, 0, 232)
-sortLabel.BackgroundTransparency = 1
-sortLabel.Text = "🔀  เรียงเซิฟตามคน"
-sortLabel.TextColor3 = THEME.TextDim
-sortLabel.TextSize = 11
-sortLabel.Font = Enum.Font.GothamBold
-sortLabel.TextXAlignment = Enum.TextXAlignment.Left
-sortLabel.Parent = selFrame
-
-local sortMode = config.sortMode
-local sortOptions = {
-    {key = "most",   text = "📈 มาก→น้อย"},
-    {key = "least",  text = "📉 น้อย→มาก"},
-    {key = "random", text = "🎲 สุ่ม"},
-}
-local sortBtns = {}
-
-local function refreshSortUI()
-    for _, b in pairs(sortBtns) do
-        local active = b.key == sortMode
-        b.btn.BackgroundColor3 = active and THEME.PanelAlt or THEME.Panel
-        b.stroke.Color = active and THEME.Green or Color3.fromRGB(50, 52, 60)
-        b.stroke.Transparency = active and 0.15 or 0.6
-        b.label.TextColor3 = active and THEME.TextMain or THEME.TextDim
-    end
-end
-
-for i, opt in ipairs(sortOptions) do
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 70, 0, 30)
-    btn.Position = UDim2.new(0, 15 + (i-1)*75, 0, 252)
-    btn.BackgroundColor3 = THEME.Panel
-    btn.BorderSizePixel = 0
-    btn.AutoButtonColor = false
-    btn.Text = ""
-    btn.Parent = selFrame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    local stroke = applyStroke(btn, Color3.fromRGB(50, 52, 60), 1.2, 0.6)
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -4, 1, 0)
-    label.Position = UDim2.new(0, 2, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = opt.text
-    label.TextColor3 = THEME.TextDim
-    label.TextSize = 9
-    label.Font = Enum.Font.GothamBold
-    label.TextWrapped = true
-    label.Parent = btn
-
-    btn.MouseButton1Click:Connect(function()
-        sortMode = opt.key
-        refreshSortUI()
-    end)
-
-    table.insert(sortBtns, {btn = btn, stroke = stroke, label = label, key = opt.key})
-end
-refreshSortUI()
-
 local confirmBtn = Instance.new("TextButton")
 confirmBtn.Size = UDim2.new(1, -30, 0, 46)
-confirmBtn.Position = UDim2.new(0, 15, 0, 300)
+confirmBtn.Position = UDim2.new(0, 15, 0, 230)
 confirmBtn.BackgroundColor3 = THEME.Cyan
 confirmBtn.BorderSizePixel = 0
 confirmBtn.Text = "▶  CONFIRM & START"
@@ -445,7 +351,7 @@ applyGradient(confirmBtn, THEME.Cyan, THEME.Purple, 0)
 
 local selHint = Instance.new("TextLabel")
 selHint.Size = UDim2.new(1, -20, 0, 30)
-selHint.Position = UDim2.new(0, 10, 0, 362)
+selHint.Position = UDim2.new(0, 10, 0, 292)
 selHint.BackgroundTransparency = 1
 selHint.Text = "เลือกอย่างน้อย 1 mode แล้วกด Confirm"
 selHint.TextColor3 = THEME.TextDim
@@ -1014,7 +920,6 @@ local function startSelectedModes()
     end
 
     config.modes = checkboxState
-    config.sortMode = sortMode
     saveConfig()
 
     selectGui.Enabled = false
