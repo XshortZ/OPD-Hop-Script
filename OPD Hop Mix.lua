@@ -434,10 +434,15 @@ statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 statusLabel.Parent = mainFrame
 
 -- คอนเทนเนอร์สำหรับแต่ละ mode panel (สร้างไดนามิก)
-local panelsFrame = Instance.new("Frame")
+local panelsFrame = Instance.new("ScrollingFrame")
 panelsFrame.Size = UDim2.new(1, -20, 0, 270)
 panelsFrame.Position = UDim2.new(0, 10, 0, 70)
 panelsFrame.BackgroundTransparency = 1
+panelsFrame.BorderSizePixel = 0
+panelsFrame.ScrollBarThickness = 4
+panelsFrame.ScrollBarImageColor3 = THEME.Cyan
+panelsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+panelsFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
 panelsFrame.Parent = mainFrame
 
 -- Manual Hop button: บังคับย้ายเซิร์ฟทันที (เซิฟไม่ดีแต่เจอเป้าหมาย ก็ hop ได้)
