@@ -200,45 +200,7 @@ local function TPReturner()
                         TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
                     end
                 end)
-                task.wait(4)
-                return
-            end
-        end
-    end
-end
-        local ID = tostring(v.id)
-        local Possible = true
-        local num = 0
-        if tonumber(v.maxPlayers) > tonumber(v.playing) then
-            for _, Existing in pairs(AllIDs) do
-                if num ~= 0 then
-                    if ID == tostring(Existing) then Possible = false end
-                else
-                    if tonumber(actualHour) ~= tonumber(Existing) then
-                        pcall(function()
-                            delfile("NotSameServers.json")
-                            AllIDs = {}
-                            table.insert(AllIDs, actualHour)
-                        end)
-                    end
-                end
-                num = num + 1
-            end
-            if Possible then
-                table.insert(AllIDs, ID)
-                if paused then return end
-                pcall(function()
-                    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
-                    if not paused then
-                        TeleportService:TeleportToPlaceInstance(PLACE_ID, ID, LocalPlayer)
-                    end
-                end)
-                task.wait(4)
-                return
-            end
-        end
-    end
-end
+                
 
 local statusLabel
 local function hopServer()
