@@ -509,8 +509,8 @@ local function scanFruits()
             end
         end
     end
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("Tool") and isTargetFruit(obj.Name) and not obj:IsDescendantOf(Players) then
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Tool") and isTargetFruit(obj.Name) then
             local key = "world_" .. obj.Name
             if not seen[key] then
                 seen[key] = true
@@ -526,7 +526,7 @@ local function scanWhitebeard()
     local function checkModel(model)
         if model == LocalPlayer.Character then return end
         if not model:IsA("Model") then return end
-        if string.lower(model.Name):find("whitebeard") then
+        if string.lower(model.Name) == "lv20000 whitebeard" then
             local hrp = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
             table.insert(results, {name = model.Name, root = hrp})
         end
@@ -965,7 +965,13 @@ local function startSelectedModes()
                             end
                         end
                         data.listLabel.Text = txt
-                        if #newList ~= #data.camList then
+                        local newSig = table.concat((function()
+                            local labels = {}
+                            for _, v in ipairs(newList) do table.insert(labels, v.label) end
+                            return labels
+                        end)(), "|")
+                        if newSig ~= data.camSig then
+                            data.camSig = newSig
                             data.camList = newList
                             data.camIndex = 1
                             if data.updateCamUI then data.updateCamUI() end
@@ -1033,7 +1039,13 @@ local function startSelectedModes()
                             table.insert(newList, {label = t.name, obj = t.root})
                         end
                         data.listLabel.Text = txt
-                        if #newList ~= #data.camList then
+                        local newSig = table.concat((function()
+                            local labels = {}
+                            for _, v in ipairs(newList) do table.insert(labels, v.label) end
+                            return labels
+                        end)(), "|")
+                        if newSig ~= data.camSig then
+                            data.camSig = newSig
                             data.camList = newList
                             data.camIndex = 1
                             if data.updateCamUI then data.updateCamUI() end
