@@ -22,6 +22,42 @@ local NTFY_SD        = _G.NTFY_SD or ""
 local CHECK_INTERVAL = 2
 local PLACE_ID = game.PlaceId
 
+-- ==========================================
+--  CYBER THEME PALETTE
+-- ==========================================
+local THEME = {
+    Bg        = Color3.fromRGB(8, 9, 16),
+    Panel     = Color3.fromRGB(14, 16, 26),
+    PanelAlt  = Color3.fromRGB(19, 21, 34),
+    Stroke    = Color3.fromRGB(0, 230, 255),
+    Cyan      = Color3.fromRGB(0, 230, 255),
+    Magenta   = Color3.fromRGB(255, 50, 170),
+    Purple    = Color3.fromRGB(150, 80, 255),
+    Green     = Color3.fromRGB(60, 255, 170),
+    Red       = Color3.fromRGB(255, 70, 90),
+    Yellow    = Color3.fromRGB(255, 210, 60),
+    TextMain  = Color3.fromRGB(235, 240, 255),
+    TextDim   = Color3.fromRGB(130, 140, 165),
+}
+
+local function applyStroke(obj, color, thickness, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color = color or THEME.Cyan
+    s.Thickness = thickness or 1
+    s.Transparency = transparency or 0.25
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = obj
+    return s
+end
+
+local function applyGradient(obj, c1, c2, rotation)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new(c1 or THEME.Cyan, c2 or THEME.Purple)
+    g.Rotation = rotation or 0
+    g.Parent = obj
+    return g
+end
+
 local TARGET_FRUITS = {
     "Paw","Candy","Chilly","Flare","Gas","Gravity","Gum",
     "Hollow","Light","Magma","Ope","Plasma","Rumble",
@@ -199,24 +235,42 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 280, 0, 320)
-selFrame.Position = UDim2.new(0.5, -140, 0.5, -160)
-selFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+selFrame.Size = UDim2.new(0, 290, 0, 330)
+selFrame.Position = UDim2.new(0.5, -145, 0.5, -165)
+selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
 selFrame.Parent = selectGui
-Instance.new("UICorner", selFrame).CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", selFrame).CornerRadius = UDim.new(0, 14)
+applyStroke(selFrame, THEME.Cyan, 1.5, 0.35)
 
 local selTitle = Instance.new("TextLabel")
 selTitle.Size = UDim2.new(1, 0, 0, 50)
-selTitle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+selTitle.BackgroundColor3 = THEME.PanelAlt
 selTitle.BorderSizePixel = 0
-selTitle.Text = "🔍  เลือก Finder Mode (เลือกได้หลายอัน)"
-selTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-selTitle.TextSize = 13
+selTitle.Text = "⌬  SELECT FINDER MODE"
+selTitle.TextColor3 = THEME.Cyan
+selTitle.TextSize = 14
 selTitle.Font = Enum.Font.GothamBold
 selTitle.TextWrapped = true
 selTitle.Parent = selFrame
-Instance.new("UICorner", selTitle).CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", selTitle).CornerRadius = UDim.new(0, 14)
+local selTitleBottomFix = Instance.new("Frame")
+selTitleBottomFix.Size = UDim2.new(1, 0, 0, 14)
+selTitleBottomFix.Position = UDim2.new(0, 0, 1, -14)
+selTitleBottomFix.BackgroundColor3 = THEME.PanelAlt
+selTitleBottomFix.BorderSizePixel = 0
+selTitleBottomFix.ZIndex = 0
+selTitleBottomFix.Parent = selTitle
+local selSub = Instance.new("TextLabel")
+selSub.Size = UDim2.new(1, -20, 0, 16)
+selSub.Position = UDim2.new(0, 10, 0, 30)
+selSub.BackgroundTransparency = 1
+selSub.Text = "เลือกได้หลายอัน • พร้อม Auto-Hop"
+selSub.TextColor3 = THEME.TextDim
+selSub.TextSize = 10
+selSub.Font = Enum.Font.Gotham
+selSub.TextXAlignment = Enum.TextXAlignment.Left
+selSub.Parent = selFrame
 
 local checkboxState = {
     fruit = config.modes.fruit or false,
@@ -228,45 +282,79 @@ local function makeCheckbox(text, color, posY, key)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -30, 0, 50)
     btn.Position = UDim2.new(0, 15, 0, posY)
-    btn.BackgroundColor3 = checkboxState[key] and color or Color3.fromRGB(40, 40, 40)
+    btn.BackgroundColor3 = checkboxState[key] and THEME.PanelAlt or THEME.Panel
     btn.BorderSizePixel = 0
-    btn.Text = (checkboxState[key] and "✅ " or "⬜ ") .. text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 14
-    btn.Font = Enum.Font.GothamBold
+    btn.AutoButtonColor = false
+    btn.Text = ""
     btn.Parent = selFrame
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    local stroke = applyStroke(btn, checkboxState[key] and color or Color3.fromRGB(50, 52, 60), 1.4, checkboxState[key] and 0.15 or 0.6)
+
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 8, 0, 8)
+    dot.Position = UDim2.new(0, 14, 0.5, -4)
+    dot.BackgroundColor3 = color
+    dot.BorderSizePixel = 0
+    dot.Visible = checkboxState[key]
+    dot.Parent = btn
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Position = UDim2.new(0, 30, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = checkboxState[key] and THEME.TextMain or THEME.TextDim
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = btn
+
+    local check = Instance.new("TextLabel")
+    check.Size = UDim2.new(0, 30, 1, 0)
+    check.Position = UDim2.new(1, -36, 0, 0)
+    check.BackgroundTransparency = 1
+    check.Text = checkboxState[key] and "✓" or ""
+    check.TextColor3 = color
+    check.TextSize = 16
+    check.Font = Enum.Font.GothamBold
+    check.Parent = btn
 
     btn.MouseButton1Click:Connect(function()
         checkboxState[key] = not checkboxState[key]
-        btn.BackgroundColor3 = checkboxState[key] and color or Color3.fromRGB(40, 40, 40)
-        btn.Text = (checkboxState[key] and "✅ " or "⬜ ") .. text
+        btn.BackgroundColor3 = checkboxState[key] and THEME.PanelAlt or THEME.Panel
+        stroke.Color = checkboxState[key] and color or Color3.fromRGB(50, 52, 60)
+        stroke.Transparency = checkboxState[key] and 0.15 or 0.6
+        dot.Visible = checkboxState[key]
+        label.TextColor3 = checkboxState[key] and THEME.TextMain or THEME.TextDim
+        check.Text = checkboxState[key] and "✓" or ""
     end)
     return btn
 end
 
-makeCheckbox("🍎  Fruit Finder",         Color3.fromRGB(180, 80,  30),  60, "fruit")
-makeCheckbox("⚓  Whitebeard Finder",    Color3.fromRGB(40,  80,  160), 115, "whitebeard")
-makeCheckbox("🃏  Secret Dealer Finder", Color3.fromRGB(100, 30,  150), 170, "secretdealer")
+makeCheckbox("🍎  Fruit Finder",         THEME.Yellow,  64, "fruit")
+makeCheckbox("⚓  Whitebeard Finder",    THEME.Cyan,    120, "whitebeard")
+makeCheckbox("🃏  Secret Dealer Finder", THEME.Purple,  176, "secretdealer")
 
 local confirmBtn = Instance.new("TextButton")
-confirmBtn.Size = UDim2.new(1, -30, 0, 45)
-confirmBtn.Position = UDim2.new(0, 15, 0, 235)
-confirmBtn.BackgroundColor3 = Color3.fromRGB(30, 140, 60)
+confirmBtn.Size = UDim2.new(1, -30, 0, 46)
+confirmBtn.Position = UDim2.new(0, 15, 0, 238)
+confirmBtn.BackgroundColor3 = THEME.Cyan
 confirmBtn.BorderSizePixel = 0
-confirmBtn.Text = "✅ Confirm"
-confirmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-confirmBtn.TextSize = 15
+confirmBtn.Text = "▶  CONFIRM & START"
+confirmBtn.TextColor3 = Color3.fromRGB(5, 8, 12)
+confirmBtn.TextSize = 14
 confirmBtn.Font = Enum.Font.GothamBold
 confirmBtn.Parent = selFrame
 Instance.new("UICorner", confirmBtn).CornerRadius = UDim.new(0, 8)
+applyGradient(confirmBtn, THEME.Cyan, THEME.Purple, 0)
 
 local selHint = Instance.new("TextLabel")
 selHint.Size = UDim2.new(1, -20, 0, 30)
-selHint.Position = UDim2.new(0, 10, 0, 285)
+selHint.Position = UDim2.new(0, 10, 0, 292)
 selHint.BackgroundTransparency = 1
 selHint.Text = "เลือกอย่างน้อย 1 mode แล้วกด Confirm"
-selHint.TextColor3 = Color3.fromRGB(150, 150, 150)
+selHint.TextColor3 = THEME.TextDim
 selHint.TextSize = 11
 selHint.Font = Enum.Font.Gotham
 selHint.TextWrapped = true
@@ -282,40 +370,64 @@ mainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 mainGui.Parent = LocalPlayer.PlayerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 260, 0, 500)
-mainFrame.Position = UDim2.new(0, 20, 0.5, -250)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.Size = UDim2.new(0, 270, 0, 568)
+mainFrame.Position = UDim2.new(0, 20, 0.5, -284)
+mainFrame.BackgroundColor3 = THEME.Bg
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = false
 mainFrame.Parent = mainGui
-Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+applyStroke(mainFrame, THEME.Cyan, 1.5, 0.35)
 
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 36)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.Size = UDim2.new(1, 0, 0, 38)
+titleBar.BackgroundColor3 = THEME.PanelAlt
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 12)
+local titleBarFix = Instance.new("Frame")
+titleBarFix.Size = UDim2.new(1, 0, 0, 14)
+titleBarFix.Position = UDim2.new(0, 0, 1, -14)
+titleBarFix.BackgroundColor3 = THEME.PanelAlt
+titleBarFix.BorderSizePixel = 0
+titleBarFix.ZIndex = 0
+titleBarFix.Parent = titleBar
+
+local titlePulse = Instance.new("Frame")
+titlePulse.Size = UDim2.new(0, 6, 0, 6)
+titlePulse.Position = UDim2.new(0, 12, 0.5, -3)
+titlePulse.BackgroundColor3 = THEME.Green
+titlePulse.BorderSizePixel = 0
+titlePulse.Parent = titleBar
+Instance.new("UICorner", titlePulse).CornerRadius = UDim.new(1, 0)
+task.spawn(function()
+    while titlePulse.Parent do
+        for i = 1, 2 do
+            titlePulse.BackgroundTransparency = i == 1 and 0.7 or 0
+            task.wait(0.6)
+        end
+    end
+end)
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -10, 1, 0)
-titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.Size = UDim2.new(1, -32, 1, 0)
+titleLabel.Position = UDim2.new(0, 26, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "🔍 Multi-Finder"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 14
+titleLabel.Text = "⌬ MULTI-FINDER // CYBER"
+titleLabel.TextColor3 = THEME.Cyan
+titleLabel.TextSize = 13
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = titleBar
 
 statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, -20, 0, 22)
-statusLabel.Position = UDim2.new(0, 10, 0, 42)
+statusLabel.Size = UDim2.new(1, -20, 0, 20)
+statusLabel.Position = UDim2.new(0, 10, 0, 44)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "⏳ กำลังสแกน..."
-statusLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
+statusLabel.TextColor3 = THEME.Yellow
 statusLabel.TextSize = 12
 statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -324,21 +436,36 @@ statusLabel.Parent = mainFrame
 -- คอนเทนเนอร์สำหรับแต่ละ mode panel (สร้างไดนามิก)
 local panelsFrame = Instance.new("Frame")
 panelsFrame.Size = UDim2.new(1, -20, 0, 415)
-panelsFrame.Position = UDim2.new(0, 10, 0, 68)
+panelsFrame.Position = UDim2.new(0, 10, 0, 70)
 panelsFrame.BackgroundTransparency = 1
 panelsFrame.Parent = mainFrame
 
+-- Manual Hop button: บังคับย้ายเซิร์ฟทันที (เซิฟไม่ดีแต่เจอเป้าหมาย ก็ hop ได้)
+local hopBtn = Instance.new("TextButton")
+hopBtn.Size = UDim2.new(1, -20, 0, 32)
+hopBtn.Position = UDim2.new(0, 10, 0, 490)
+hopBtn.BackgroundColor3 = THEME.Panel
+hopBtn.BorderSizePixel = 0
+hopBtn.Text = "⤴  HOP SERVER (Manual)"
+hopBtn.TextColor3 = THEME.Magenta
+hopBtn.TextSize = 13
+hopBtn.Font = Enum.Font.GothamBold
+hopBtn.Parent = mainFrame
+Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 8)
+applyStroke(hopBtn, THEME.Magenta, 1.4, 0.2)
+
 local switchBtn = Instance.new("TextButton")
 switchBtn.Size = UDim2.new(1, -20, 0, 28)
-switchBtn.Position = UDim2.new(0, 10, 0, 466)
-switchBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+switchBtn.Position = UDim2.new(0, 10, 0, 528)
+switchBtn.BackgroundColor3 = THEME.Panel
 switchBtn.BorderSizePixel = 0
-switchBtn.Text = "⚙️ เปลี่ยน Mode (M)"
-switchBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+switchBtn.Text = "⚙ เปลี่ยน Mode (M)"
+switchBtn.TextColor3 = THEME.TextDim
 switchBtn.TextSize = 12
 switchBtn.Font = Enum.Font.GothamBold
 switchBtn.Parent = mainFrame
 Instance.new("UICorner", switchBtn).CornerRadius = UDim.new(0, 6)
+applyStroke(switchBtn, Color3.fromRGB(60, 64, 78), 1, 0.4)
 
 -- ==========================================
 --  SCAN HELPERS
@@ -533,10 +660,11 @@ local CAM_DISTANCE = 40
 local function createPanel(key, title, color, hasCam, hasPickup)
     local panel = Instance.new("Frame")
     panel.Size = UDim2.new(1, 0, 0, hasPickup and 175 or (hasCam and 150 or 90))
-    panel.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    panel.BackgroundColor3 = THEME.Panel
     panel.BorderSizePixel = 0
     panel.Parent = panelsFrame
     Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 8)
+    applyStroke(panel, color, 1, 0.55)
 
     local header = Instance.new("TextLabel")
     header.Size = UDim2.new(1, -10, 0, 22)
@@ -554,7 +682,7 @@ local function createPanel(key, title, color, hasCam, hasPickup)
     listLabel.Position = UDim2.new(0, 8, 0, 28)
     listLabel.BackgroundTransparency = 1
     listLabel.Text = "พบ: -"
-    listLabel.TextColor3 = Color3.fromRGB(180, 255, 180)
+    listLabel.TextColor3 = THEME.TextMain
     listLabel.TextSize = 10
     listLabel.Font = Enum.Font.Gotham
     listLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -751,15 +879,15 @@ local function startSelectedModes()
     activeModes = {}
 
     if checkboxState.fruit then
-        modeData.fruit = createPanel("fruit", "🍎 Fruit Finder", Color3.fromRGB(255, 170, 100), true, true)
+        modeData.fruit = createPanel("fruit", "🍎 Fruit Finder", THEME.Yellow, true, true)
         table.insert(activeModes, "fruit")
     end
     if checkboxState.whitebeard then
-        modeData.whitebeard = createPanel("whitebeard", "⚓ Whitebeard Finder", Color3.fromRGB(120, 180, 255), false, false)
+        modeData.whitebeard = createPanel("whitebeard", "⚓ Whitebeard Finder", THEME.Cyan, false, false)
         table.insert(activeModes, "whitebeard")
     end
     if checkboxState.secretdealer then
-        modeData.secretdealer = createPanel("secretdealer", "🃏 Secret Dealer Finder", Color3.fromRGB(220, 150, 255), true, false)
+        modeData.secretdealer = createPanel("secretdealer", "🃏 Secret Dealer Finder", THEME.Purple, true, false)
         table.insert(activeModes, "secretdealer")
     end
 
@@ -938,6 +1066,29 @@ confirmBtn.MouseButton1Click:Connect(function()
     running = false
     task.wait(0.1)
     startSelectedModes()
+end)
+
+-- Manual Hop: ผู้ใช้กดเองเมื่อรู้สึกว่าเซิฟไม่ดี (lag/โดนเป้าหมายแย่งไปแล้ว ฯลฯ)
+local hopDebounce = false
+hopBtn.MouseButton1Click:Connect(function()
+    if hopDebounce then return end
+    hopDebounce = true
+    local originalText = hopBtn.Text
+    hopBtn.Text = "⤴  HOPPING..."
+    hopBtn.AutoButtonColor = false
+    if statusLabel then
+        statusLabel.Text = "🛰️ Manual Hop: กำลังย้ายเซิร์ฟ..."
+        statusLabel.TextColor3 = THEME.Magenta
+    end
+    warn("[Finder] 🛰️ Manual Hop กดโดยผู้ใช้ → กำลังย้ายเซิร์ฟ...")
+    pcall(function() TPReturner() end)
+    if foundAnything ~= "" then
+        pcall(function() TPReturner() end)
+    end
+    task.wait(2)
+    hopBtn.Text = originalText
+    hopBtn.AutoButtonColor = true
+    hopDebounce = false
 end)
 
 -- Switch mode button
