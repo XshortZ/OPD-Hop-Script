@@ -92,6 +92,7 @@ local CONFIG_FILE = "FinderConfigMulti.json"
 local config = {
     modes = {},          -- { fruit = true/false, whitebeard = true/false, secretdealer = true/false }
     autoPickupFruit = false,
+    sortMode = "random", -- "most" | "least" | "random"
 }
 
 local function saveConfig()
@@ -134,7 +135,20 @@ local function TPReturner()
     if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
         foundAnything = Site.nextPageCursor
     end
-    for _, v in pairs(Site.data) do
+
+    local serverList = Site.data
+    if config.sortMode == "most" then
+        table.sort(serverList, function(a, b) return tonumber(a.playing) > tonumber(b.playing) end)
+    elseif config.sortMode == "least" then
+        table.sort(serverList, function(a, b) return tonumber(a.playing) < tonumber(b.playing) end)
+    elseif config.sortMode == "random" then
+        for i = #serverList, 2, -1 do
+            local j = math.random(1, i)
+            serverList[i], serverList[j] = serverList[j], serverList[i]
+        end
+    end
+
+    for _, v in pairs(serverList) do
         local ID = tostring(v.id)
         local Possible = true
         local num = 0
@@ -235,8 +249,8 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 250, 0, 290)
-selFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
+selFrame.Size = UDim2.new(0, 250, 0, 360)
+selFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
 selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
 selFrame.Parent = selectGui
@@ -336,9 +350,70 @@ makeCheckbox("🍎  Fruit Finder",         THEME.Yellow,  64, "fruit")
 makeCheckbox("⚓  Whitebeard Finder",    THEME.Cyan,    120, "whitebeard")
 makeCheckbox("🃏  Secret Dealer Finder", THEME.Purple,  176, "secretdealer")
 
+local sortLabel = Instance.new("TextLabel")
+sortLabel.Size = UDim2.new(1, -20, 0, 16)
+sortLabel.Position = UDim2.new(0, 15, 0, 232)
+sortLabel.BackgroundTransparency = 1
+sortLabel.Text = "🔀  เรียงเซิฟตามคน"
+sortLabel.TextColor3 = THEME.TextDim
+sortLabel.TextSize = 11
+sortLabel.Font = Enum.Font.GothamBold
+sortLabel.TextXAlignment = Enum.TextXAlignment.Left
+sortLabel.Parent = selFrame
+
+local sortMode = config.sortMode
+local sortOptions = {
+    {key = "most",   text = "📈 มาก→น้อย"},
+    {key = "least",  text = "📉 น้อย→มาก"},
+    {key = "random", text = "🎲 สุ่ม"},
+}
+local sortBtns = {}
+
+local function refreshSortUI()
+    for _, b in pairs(sortBtns) do
+        local active = b.key == sortMode
+        b.btn.BackgroundColor3 = active and THEME.PanelAlt or THEME.Panel
+        b.stroke.Color = active and THEME.Green or Color3.fromRGB(50, 52, 60)
+        b.stroke.Transparency = active and 0.15 or 0.6
+        b.label.TextColor3 = active and THEME.TextMain or THEME.TextDim
+    end
+end
+
+for i, opt in ipairs(sortOptions) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 70, 0, 30)
+    btn.Position = UDim2.new(0, 15 + (i-1)*75, 0, 252)
+    btn.BackgroundColor3 = THEME.Panel
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.Text = ""
+    btn.Parent = selFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    local stroke = applyStroke(btn, Color3.fromRGB(50, 52, 60), 1.2, 0.6)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -4, 1, 0)
+    label.Position = UDim2.new(0, 2, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = opt.text
+    label.TextColor3 = THEME.TextDim
+    label.TextSize = 9
+    label.Font = Enum.Font.GothamBold
+    label.TextWrapped = true
+    label.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        sortMode = opt.key
+        refreshSortUI()
+    end)
+
+    table.insert(sortBtns, {btn = btn, stroke = stroke, label = label, key = opt.key})
+end
+refreshSortUI()
+
 local confirmBtn = Instance.new("TextButton")
 confirmBtn.Size = UDim2.new(1, -30, 0, 46)
-confirmBtn.Position = UDim2.new(0, 15, 0, 230)
+confirmBtn.Position = UDim2.new(0, 15, 0, 300)
 confirmBtn.BackgroundColor3 = THEME.Cyan
 confirmBtn.BorderSizePixel = 0
 confirmBtn.Text = "▶  CONFIRM & START"
@@ -351,7 +426,7 @@ applyGradient(confirmBtn, THEME.Cyan, THEME.Purple, 0)
 
 local selHint = Instance.new("TextLabel")
 selHint.Size = UDim2.new(1, -20, 0, 30)
-selHint.Position = UDim2.new(0, 10, 0, 292)
+selHint.Position = UDim2.new(0, 10, 0, 362)
 selHint.BackgroundTransparency = 1
 selHint.Text = "เลือกอย่างน้อย 1 mode แล้วกด Confirm"
 selHint.TextColor3 = THEME.TextDim
@@ -920,6 +995,7 @@ local function startSelectedModes()
     end
 
     config.modes = checkboxState
+    config.sortMode = sortMode
     saveConfig()
 
     selectGui.Enabled = false
