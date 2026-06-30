@@ -678,7 +678,7 @@ local function createPanel(key, title, color, hasCam, hasPickup)
     header.Parent = panel
 
     local listLabel = Instance.new("TextLabel")
-    listLabel.Size = UDim2.new(1, -16, 0, 50)
+    listLabel.Size = UDim2.new(1, -16, 0, 36)
     listLabel.Position = UDim2.new(0, 8, 0, 28)
     listLabel.BackgroundTransparency = 1
     listLabel.Text = "พบ: -"
@@ -692,7 +692,7 @@ local function createPanel(key, title, color, hasCam, hasPickup)
 
     local data = { found = false, panel = panel, listLabel = listLabel, cameraLocked = false, targetObj = nil, camList = {}, camIndex = 1 }
 
-    local yOff = 80
+    local yOff = 64
     if hasCam then
         local camBtn = Instance.new("TextButton")
         camBtn.Size = UDim2.new(1, -16, 0, 26)
@@ -706,7 +706,7 @@ local function createPanel(key, title, color, hasCam, hasPickup)
         camBtn.Parent = panel
         Instance.new("UICorner", camBtn).CornerRadius = UDim.new(0, 5)
         data.camBtn = camBtn
-        yOff = yOff + 30
+        yOff = yOff + 26
 
         local prevBtn = Instance.new("TextButton")
         prevBtn.Size = UDim2.new(0, 26, 0, 22)
@@ -784,7 +784,7 @@ local function createPanel(key, title, color, hasCam, hasPickup)
                 camBtn.Text = "📷 Lock: OFF"
             end
         end)
-        yOff = yOff + 28
+        yOff = yOff + 24
     end
 
     if hasPickup then
