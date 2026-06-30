@@ -509,14 +509,24 @@ local function scanFruits()
             end
         end
     end
-    for _, obj in pairs(workspace:GetChildren()) do
+    local function checkFruitContainer(obj, depth)
+        if depth > 4 then return end -- กันลึกเกินไป
         if obj:IsA("Tool") and isTargetFruit(obj.Name) then
-            local key = "world_" .. obj.Name
+            local key = "world_" .. obj.Name .. "_" .. obj:GetDebugId()
             if not seen[key] then
                 seen[key] = true
                 table.insert(results, {player = nil, item = obj.Name})
             end
+            return
         end
+        if obj:IsA("Folder") or obj:IsA("Model") then
+            for _, child in pairs(obj:GetChildren()) do
+                checkFruitContainer(child, depth + 1)
+            end
+        end
+    end
+    for _, obj in pairs(workspace:GetChildren()) do
+        checkFruitContainer(obj, 1)
     end
     return results
 end
