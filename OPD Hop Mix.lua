@@ -857,6 +857,8 @@ RunService:BindToRenderStep("FinderCamLock", Enum.RenderPriority.Camera.Value + 
     end
     if anyLocked then
         Camera.CameraType = Enum.CameraType.Scriptable
+    else
+        Camera.CameraType = Enum.CameraType.Custom
     end
 end)
 
