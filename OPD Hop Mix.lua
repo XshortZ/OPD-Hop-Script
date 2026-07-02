@@ -58,12 +58,29 @@ local function applyGradient(obj, c1, c2, rotation)
     return g
 end
 
-local TARGET_FRUITS = {
-    "Paw","Candy","Chilly","Flare","Gas","Gravity","Gum",
-    "Hollow","Light","Magma","Ope","Plasma","Rumble",
-    "Sand","Smoke","Snow","String","Venom","Dark","Phoenix",
-    "Quake","Buddha","Vampire"
+local FRUIT_RARITY = {
+    uncommon  = {"Barrier","Love","Smelt","Order","Diamond","Bomb","Slow","Hobby"},
+    rare      = {"Candy","Chilly","Flare","Sand","Magma","Rumble","Light","Ope","Plasma","Snow","Gravity","Gas","Gum","String","Paw","Venom"},
+    ultrarare = {"Dark","Buddha","Quake","Phoenix"},
 }
+
+local rarityActive = {
+    uncommon  = false,
+    rare      = true,
+    ultrarare = true,
+}
+
+local function buildTargetFruits()
+    local list = {}
+    for rarity, fruits in pairs(FRUIT_RARITY) do
+        if rarityActive[rarity] then
+            for _, f in pairs(fruits) do
+                table.insert(list, f)
+            end
+        end
+    end
+    return list
+end
 
 -- ==========================================
 --  WAIT
@@ -96,6 +113,7 @@ local config = {
 
 local function saveConfig()
     pcall(function()
+        config.rarityActive = rarityActive
         writefile(CONFIG_FILE, HttpService:JSONEncode(config))
     end)
 end
@@ -105,6 +123,11 @@ local function loadConfig()
         local data = HttpService:JSONDecode(readfile(CONFIG_FILE))
         config.modes = data.modes or {}
         config.autoPickupFruit = data.autoPickupFruit or false
+        if data.rarityActive then
+            for k, v in pairs(data.rarityActive) do
+                rarityActive[k] = v
+            end
+        end
     end)
 end
 loadConfig()
@@ -235,8 +258,8 @@ selectGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 selectGui.Parent = LocalPlayer.PlayerGui
 
 local selFrame = Instance.new("Frame")
-selFrame.Size = UDim2.new(0, 250, 0, 290)
-selFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
+selFrame.Size = UDim2.new(0, 250, 0, 390)
+selFrame.Position = UDim2.new(0.5, -125, 0.5, -195)
 selFrame.BackgroundColor3 = THEME.Bg
 selFrame.BorderSizePixel = 0
 selFrame.Parent = selectGui
@@ -336,9 +359,103 @@ makeCheckbox("🍎  Fruit Finder",         THEME.Yellow,  64, "fruit")
 makeCheckbox("⚓  Whitebeard Finder",    THEME.Cyan,    120, "whitebeard")
 makeCheckbox("🃏  Secret Dealer Finder", THEME.Purple,  176, "secretdealer")
 
+-- ---- RARITY SECTION ----
+local rarityLabel = Instance.new("TextLabel")
+rarityLabel.Size = UDim2.new(1, -20, 0, 14)
+rarityLabel.Position = UDim2.new(0, 15, 0, 232)
+rarityLabel.BackgroundTransparency = 1
+rarityLabel.Text = "🍑  เลือก Rarity (Fruit Finder)"
+rarityLabel.TextColor3 = THEME.TextDim
+rarityLabel.TextSize = 10
+rarityLabel.Font = Enum.Font.GothamBold
+rarityLabel.TextXAlignment = Enum.TextXAlignment.Left
+rarityLabel.Parent = selFrame
+
+local RARITY_OPTS = {
+    {key="uncommon",  text="⚪ Uncommon", color=Color3.fromRGB(180,210,255)},
+    {key="rare",      text="🟡 Rare",     color=Color3.fromRGB(255,210,60)},
+    {key="ultrarare", text="🔴 Ultra",    color=Color3.fromRGB(255,80,120)},
+}
+local rarityBtns = {}
+
+local function refreshRarityUI()
+    for _, b in pairs(rarityBtns) do
+        local on = rarityActive[b.key]
+        b.btn.BackgroundColor3 = on and THEME.PanelAlt or THEME.Panel
+        b.stroke.Color = on and b.color or Color3.fromRGB(50,52,60)
+        b.stroke.Transparency = on and 0.1 or 0.6
+        b.label.TextColor3 = on and THEME.TextMain or THEME.TextDim
+        b.check.Text = on and "✓" or ""
+        b.check.TextColor3 = b.color
+    end
+end
+
+for i, opt in ipairs(RARITY_OPTS) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 72, 0, 32)
+    btn.Position = UDim2.new(0, 12 + (i-1)*78, 0, 250)
+    btn.BackgroundColor3 = THEME.Panel
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.Text = ""
+    btn.Parent = selFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    local s = Instance.new("UIStroke", btn)
+    s.Color = Color3.fromRGB(50,52,60)
+    s.Thickness = 1.2
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local label = Instance.new("TextLabel", btn)
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 4, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = opt.text
+    label.TextColor3 = THEME.TextDim
+    label.TextSize = 9
+    label.Font = Enum.Font.GothamBold
+    label.TextWrapped = true
+
+    local check = Instance.new("TextLabel", btn)
+    check.Size = UDim2.new(0, 16, 1, 0)
+    check.Position = UDim2.new(1, -18, 0, 0)
+    check.BackgroundTransparency = 1
+    check.Text = ""
+    check.TextColor3 = opt.color
+    check.TextSize = 13
+    check.Font = Enum.Font.GothamBold
+
+    btn.MouseButton1Click:Connect(function()
+        rarityActive[opt.key] = not rarityActive[opt.key]
+        refreshRarityUI()
+    end)
+
+    table.insert(rarityBtns, {btn=btn, stroke=s, label=label, check=check, key=opt.key, color=opt.color})
+end
+refreshRarityUI()
+
+-- hint เล็กๆ บอกจำนวนผลที่จะหา
+local rarityHint = Instance.new("TextLabel")
+rarityHint.Size = UDim2.new(1, -20, 0, 12)
+rarityHint.Position = UDim2.new(0, 15, 0, 286)
+rarityHint.BackgroundTransparency = 1
+rarityHint.TextColor3 = THEME.TextDim
+rarityHint.TextSize = 9
+rarityHint.Font = Enum.Font.Gotham
+rarityHint.TextXAlignment = Enum.TextXAlignment.Left
+rarityHint.Parent = selFrame
+
+-- อัปเดต hint แบบ real-time
+task.spawn(function()
+    while rarityHint.Parent do
+        local count = #buildTargetFruits()
+        rarityHint.Text = "จะหาทั้งหมด " .. count .. " ผล"
+        task.wait(0.3)
+    end
+end)
+
 local confirmBtn = Instance.new("TextButton")
 confirmBtn.Size = UDim2.new(1, -30, 0, 46)
-confirmBtn.Position = UDim2.new(0, 15, 0, 230)
+confirmBtn.Position = UDim2.new(0, 15, 0, 306)
 confirmBtn.BackgroundColor3 = THEME.Cyan
 confirmBtn.BorderSizePixel = 0
 confirmBtn.Text = "▶  CONFIRM & START"
@@ -351,7 +468,7 @@ applyGradient(confirmBtn, THEME.Cyan, THEME.Purple, 0)
 
 local selHint = Instance.new("TextLabel")
 selHint.Size = UDim2.new(1, -20, 0, 30)
-selHint.Position = UDim2.new(0, 10, 0, 292)
+selHint.Position = UDim2.new(0, 10, 0, 368)
 selHint.BackgroundTransparency = 1
 selHint.Text = "เลือกอย่างน้อย 1 mode แล้วกด Confirm"
 selHint.TextColor3 = THEME.TextDim
@@ -476,7 +593,7 @@ applyStroke(switchBtn, Color3.fromRGB(60, 64, 78), 1, 0.4)
 --  SCAN HELPERS
 -- ==========================================
 local function isTargetFruit(itemName)
-    for _, fruit in pairs(TARGET_FRUITS) do
+    for _, fruit in pairs(buildTargetFruits()) do
         if string.lower(itemName) == string.lower(fruit .. " Fruit")
         or string.lower(itemName) == string.lower(fruit .. "fruit") then
             return true
