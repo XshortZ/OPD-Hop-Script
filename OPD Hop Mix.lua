@@ -59,7 +59,7 @@ local function applyGradient(obj, c1, c2, rotation)
 end
 
 local FRUIT_RARITY = {
-    uncommon  = {"Barrier","Love","Smelt","Order","Diamond","Bomb","Slow","Hobby"},
+    uncommon  = {"Barrier","Love","Smelt","Diamond","Bomb","Slow","Hobby"},
     rare      = {"Candy","Chilly","Flare","Sand","Magma","Rumble","Light","Ope","Plasma","Snow","Gravity","Gas","Gum","String","Paw","Venom"},
     ultrarare = {"Dark","Buddha","Quake","Phoenix"},
 }
