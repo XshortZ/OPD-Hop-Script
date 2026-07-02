@@ -62,7 +62,7 @@ local TARGET_FRUITS = {
     "Paw","Candy","Chilly","Flare","Gas","Gravity","Gum",
     "Hollow","Light","Magma","Ope","Plasma","Rumble",
     "Sand","Smoke","Snow","String","Venom","Dark","Phoenix",
-    "Quake","Buddha"
+    "Quake","Buddha","Vampire"
 }
 
 -- ==========================================
